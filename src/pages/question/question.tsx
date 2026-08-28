@@ -1,14 +1,14 @@
+import type { SpiProblem } from '../../features/problems/problemGenerator'
+
 type QuestionProps = {
-  category: string
+  problem: SpiProblem
   selectedAnswer: string | null
   onAnswer: (answer: string) => void
   onBack: () => void
   onSubmit: () => void
 }
 
-const choices = ['20人', '25人', '30人', '35人']
-
-function Question({ category, selectedAnswer, onAnswer, onBack, onSubmit }: QuestionProps) {
+function Question({ problem, selectedAnswer, onAnswer, onBack, onSubmit }: QuestionProps) {
   return (
     <section className="page-content narrow-content question-page">
       <div className="question-topline">
@@ -16,12 +16,13 @@ function Question({ category, selectedAnswer, onAnswer, onBack, onSubmit }: Ques
         <span className="question-count">QUESTION 1 / 10</span>
       </div>
       <div className="progress-track"><span /></div>
-      <div className="question-meta"><span>{category}</span><span>難易度：標準</span></div>
+      <div className="question-meta"><span>{problem.category}</span><span>難易度：{problem.difficulty}</span></div>
       <div className="question-card">
         <p className="question-label">問題文</p>
-        <h2>120人の25%は何人ですか。</h2>
+        <h2>{problem.question}</h2>
+        {problem.tables?.map((table) => <div className="problem-table-wrap" key={table.title}><p className="problem-table-title">{table.title}</p><table className="problem-table"><thead><tr>{table.headers.map((header) => <th key={header}>{header}</th>)}</tr></thead><tbody>{table.rows.map((row, rowIndex) => <tr key={`${row[0]}-${rowIndex}`}>{row.map((cell, cellIndex) => <td key={`${cell}-${cellIndex}`}>{cell}</td>)}</tr>)}</tbody></table></div>)}
         <div className="choices">
-          {choices.map((choice, index) => (
+          {problem.choices.map((choice, index) => (
             <button className={`choice-button ${selectedAnswer === choice ? 'is-selected' : ''}`} key={choice} onClick={() => onAnswer(choice)} type="button">
               <span>{String.fromCharCode(65 + index)}</span>{choice}
             </button>
