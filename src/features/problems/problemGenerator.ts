@@ -33,15 +33,31 @@ const createChoices = (answer: number, unit = '', step = 1) => {
   return shuffle([...values]).map((value) => `${format(value)}${unit}`)
 }
 
-const buildProblem = (category: ProblemCategory, difficulty: Difficulty, question: string, answer: number, explanation: string, unit = '', step = 1): SpiProblem => ({
-  id: `${category}-${Date.now()}-${randomInt(1000, 9999)}`,
-  category,
-  difficulty,
-  question,
-  choices: createChoices(answer, unit, step),
-  answer: `${format(answer)}${unit}`,
-  explanation,
-})
+const validateProblem = (problem: SpiProblem, answer: number, unit: string) => {
+  if (problem.choices.length !== 4 || new Set(problem.choices).size !== 4) {
+    throw new Error('選択肢は重複しない4つの候補が必要です。')
+  }
+  if (!problem.choices.includes(problem.answer)) {
+    throw new Error('正解が選択肢に含まれていません。')
+  }
+  if (['人', '個', '匹', '通り', '歳'].includes(unit) && !Number.isInteger(answer)) {
+    throw new Error(`${unit}を単位にする答えは整数である必要があります。`)
+  }
+}
+
+const buildProblem = (category: ProblemCategory, difficulty: Difficulty, question: string, answer: number, explanation: string, unit = '', step = 1): SpiProblem => {
+  const problem: SpiProblem = {
+    id: `${category}-${Date.now()}-${randomInt(1000, 9999)}`,
+    category,
+    difficulty,
+    question,
+    choices: createChoices(answer, unit, step),
+    answer: `${format(answer)}${unit}`,
+    explanation,
+  }
+  validateProblem(problem, answer, unit)
+  return problem
+}
 
 const generateInference = (difficulty: Difficulty): SpiProblem => {
   const first = randomInt(3, 8)
@@ -108,25 +124,76 @@ const generatePercentage = (difficulty: Difficulty): SpiProblem => {
   return buildProblem('割合', difficulty, `${base}人の${rate}%は何人ですか。`, answer, `${base} × ${rate} ÷ 100 = ${format(answer)}人です。`, '人')
 }
 
-const generateTable = (difficulty: Difficulty): SpiProblem => {
-  const applicants = [randomInt(80, 160), randomInt(100, 200), randomInt(120, 240)]
-  const rates = [pick([20, 25, 30]), pick([20, 25, 30]), pick([25, 30, 40])]
-  const answer = applicants[1] * rates[1] / 100 + applicants[2] * rates[2] / 100
-  const problem = buildProblem('表の読み取り', difficulty, '次の2つの表を見て、B支店とC支店の合格者数の合計を求めてください。', answer, `B支店は${applicants[1]} × ${rates[1]} ÷ 100 = ${applicants[1] * rates[1] / 100}人、C支店は${applicants[2]} × ${rates[2]} ÷ 100 = ${applicants[2] * rates[2] / 100}人。合計は${format(answer)}人です。`, '人')
+const generateTableCrossReference = (difficulty: Difficulty): SpiProblem => {
+  const cApplicants = randomInt(4, 7) * 100
+  const applicants = [randomInt(3, 5) * 100, cApplicants + randomInt(1, 3) * 100, cApplicants]
+  const generalShare = [50, 50, 50]
+  const passRates = [20, 25, 20]
+  const bGeneralPassers = applicants[1] * generalShare[1] / 100 * passRates[1] / 100
+  const cGeneralPassers = applicants[2] * generalShare[2] / 100 * passRates[2] / 100
+  const answer = bGeneralPassers - cGeneralPassers
+  const problem = buildProblem('表の読み取り', difficulty, '次の2つの表を見て、B支店とC支店の一般職合格者数の差を求めてください。', answer, `B支店は${applicants[1]} × ${generalShare[1]}% × ${passRates[1]}% = ${bGeneralPassers}人、C支店は${applicants[2]} × ${generalShare[2]}% × ${passRates[2]}% = ${cGeneralPassers}人。差は${bGeneralPassers} - ${cGeneralPassers} = ${answer}人です。`, '人')
   problem.tables = [
     {
-      title: '表1　支店別の応募者数',
+      title: '表1　支店別の応募者数と職種構成',
       headers: ['支店', 'A支店', 'B支店', 'C支店'],
-      rows: [['応募者数', `${applicants[0]}人`, `${applicants[1]}人`, `${applicants[2]}人`]],
+      rows: [['応募者数', ...applicants.map((value) => `${value}人`)], ['一般職の割合', ...generalShare.map((value) => `${value}%`)]],
     },
     {
       title: '表2　支店別の合格率',
       headers: ['支店', 'A支店', 'B支店', 'C支店'],
-      rows: [['合格率', `${rates[0]}%`, `${rates[1]}%`, `${rates[2]}%`]],
+      rows: [['合格率', ...passRates.map((value) => `${value}%`)]],
     },
   ]
   return problem
 }
+
+const generateTableAverage = (difficulty: Difficulty): SpiProblem => {
+  const departments = ['営業部', '企画部', '開発部']
+  const people = [randomInt(8, 16), randomInt(8, 16), randomInt(8, 16)]
+  const scores = [randomInt(60, 85), randomInt(65, 90), randomInt(70, 95)]
+  const target = pick([0, 1, 2])
+  const answer = scores[target]
+  const problem = buildProblem('表の読み取り', difficulty, `次の表は各部署の人数と3回のテストの平均点です。${departments[target]}の3回のテストの合計点は何点ですか。`, answer * 3, `${departments[target]}の平均点${answer}点 × 3回 = ${answer * 3}点です。`, '点', 3)
+  problem.tables = [{
+    title: '部署別テスト結果',
+    headers: ['部署', ...departments],
+    rows: [['人数', ...people.map((value) => `${value}人`)], ['3回の平均点', ...scores.map((value) => `${value}点`)]],
+  }]
+  return problem
+}
+
+const generateTableGrowth = (difficulty: Difficulty): SpiProblem => {
+  const years = ['2023年', '2024年', '2025年']
+  const sales = [randomInt(40, 80) * 10, randomInt(50, 90) * 10, randomInt(60, 100) * 10]
+  const target = pick([1, 2])
+  const answer = (sales[target] - sales[target - 1]) / sales[target - 1] * 100
+  const problem = buildProblem('表の読み取り', difficulty, `${years[target - 1]}から${years[target]}への売上の増加率は何%ですか。`, answer, `(${sales[target]} - ${sales[target - 1]}) ÷ ${sales[target - 1]} × 100 = ${format(answer)}%です。`, '%', 5)
+  problem.tables = [{
+    title: '年度別売上（単位：万円）',
+    headers: ['年度', ...years],
+    rows: [['売上', ...sales.map((value) => `${value}万円`)]],
+  }]
+  return problem
+}
+
+const generateTablePriceQuantity = (difficulty: Difficulty): SpiProblem => {
+  const products = ['商品A', '商品B', '商品C']
+  const prices = [randomInt(4, 9) * 100, randomInt(5, 12) * 100, randomInt(6, 15) * 100]
+  const quantities = [randomInt(2, 6), randomInt(2, 6), randomInt(2, 6)]
+  const totals = prices.map((price, index) => price * quantities[index])
+  const answer = totals[0] + totals[1] + totals[2]
+  const problem = buildProblem('表の読み取り', difficulty, '次の表の商品をすべて販売したとき、売上の合計はいくらですか。', answer, `商品ごとの売上は${totals.map((value) => format(value)).join('円、')}円。合計は${format(answer)}円です。`, '円', 100)
+  problem.tables = [{
+    title: '商品別の価格と販売数量',
+    headers: ['商品', ...products],
+    rows: [['1個あたりの価格', ...prices.map((value) => `${value}円`)], ['販売数量', ...quantities.map((value) => `${value}個`)]],
+  }]
+  return problem
+}
+
+const generateTable = (difficulty: Difficulty): SpiProblem =>
+  pick([generateTableCrossReference, generateTableAverage, generateTableGrowth, generateTablePriceQuantity])(difficulty)
 
 const generators: Record<ProblemCategory, (difficulty: Difficulty) => SpiProblem> = {
   推論: generateInference,
