@@ -66,6 +66,12 @@ const generateInference = (difficulty: Difficulty): SpiProblem => {
   return buildProblem('推論', difficulty, `AはBより${first}歳年上で、CはBより${second}歳年下です。AとCの年齢差は何歳ですか。`, answer, `AとCの年齢差は、${first} + ${second} = ${answer}歳です。`, '歳')
 }
 
+const generateInferenceOrder = (difficulty: Difficulty): SpiProblem => {
+  const people = ['A', 'B', 'C', 'D']
+  const answer = randomInt(1, 4)
+  return buildProblem('推論', difficulty, `${people[(answer + 1) % 4]}は${people[answer % 4]}より前、${people[(answer + 2) % 4]}は${people[(answer + 1) % 4]}より後ろに並んでいます。${people[answer % 4]}が${answer}番目のとき、${people[(answer + 1) % 4]}は何番目ですか。`, answer + 1, `条件より、${people[(answer + 1) % 4]}は${answer}番目の次なので${answer + 1}番目です。`, '番目')
+}
+
 const generateCases = (difficulty: Difficulty): SpiProblem => {
   const shirts = randomInt(3, 6)
   const pants = randomInt(2, 4)
@@ -73,11 +79,37 @@ const generateCases = (difficulty: Difficulty): SpiProblem => {
   return buildProblem('場合の数', difficulty, `シャツ${shirts}種類とパンツ${pants}種類から1つずつ選ぶと、組み合わせは何通りありますか。`, answer, `${shirts} × ${pants} = ${answer}通りです。`, '通り')
 }
 
+const generateCasesCommittee = (difficulty: Difficulty): SpiProblem => {
+  const people = randomInt(5, 9)
+  const answer = people * (people - 1) / 2
+  return buildProblem('場合の数', difficulty, `${people}人の中から、委員を2人選ぶ方法は何通りありますか。`, answer, `${people}C2 = ${people} × ${people - 1} ÷ 2 = ${answer}通りです。`, '通り')
+}
+
+const generateCasesArrangement = (difficulty: Difficulty): SpiProblem => {
+  const people = randomInt(4, 6)
+  const answer = people * (people - 1)
+  return buildProblem('場合の数', difficulty, `${people}人の中から、司会と記録係を1人ずつ選ぶ方法は何通りありますか。`, answer, `司会の${people}通りに対し、記録係は${people - 1}通り。${people} × ${people - 1} = ${answer}通りです。`, '通り')
+}
+
 const generateProbability = (difficulty: Difficulty): SpiProblem => {
   const red = randomInt(2, 5)
   const blue = randomInt(2, 5)
   const answer = red / (red + blue) * 100
   return buildProblem('確率', difficulty, `赤玉${red}個、青玉${blue}個が入った袋から1個取り出すとき、赤玉である確率は何%ですか。`, answer, `赤玉${red}個 ÷ 全部${red + blue}個 × 100 = ${format(answer)}%です。`, '%', 5)
+}
+
+const generateProbabilityTwoDraws = (difficulty: Difficulty): SpiProblem => {
+  const red = randomInt(2, 4)
+  const blue = randomInt(2, 4)
+  const total = red + blue
+  const answer = red / total * (red - 1) / (total - 1) * 100
+  return buildProblem('確率', difficulty, `赤玉${red}個、青玉${blue}個が入った袋から、玉を戻さず2個続けて取り出します。2個とも赤玉である確率は何%ですか。`, answer, `${red} ÷ ${total} × ${red - 1} ÷ ${total - 1} × 100 = ${format(answer)}%です。`, '%', 5)
+}
+
+const generateProbabilityDice = (difficulty: Difficulty): SpiProblem => {
+  const target = pick([7, 8, 9, 10])
+  const answer = (6 - Math.abs(7 - target)) / 36 * 100
+  return buildProblem('確率', difficulty, `サイコロを2個同時に投げたとき、目の和が${target}になる確率は何%ですか。`, answer, `和が${target}になる組み合わせは${6 - Math.abs(7 - target)}通り。${6 - Math.abs(7 - target)} ÷ 36 × 100 = ${format(answer)}%です。`, '%', 5)
 }
 
 const generateSet = (difficulty: Difficulty): SpiProblem => {
@@ -89,11 +121,47 @@ const generateSet = (difficulty: Difficulty): SpiProblem => {
   return buildProblem('集合', difficulty, `${total}人のうち、Aに属する人は${groupA}人、Bに属する人は${groupB}人、両方に属する人は${both}人です。どちらにも属さない人は何人ですか。`, answer, `AまたはBは${groupA} + ${groupB} - ${both} = ${groupA + groupB - both}人。${total} - ${groupA + groupB - both} = ${answer}人です。`, '人')
 }
 
+const generateSetThreeGroups = (difficulty: Difficulty): SpiProblem => {
+  const onlyA = randomInt(10, 20)
+  const onlyB = randomInt(10, 20)
+  const onlyC = randomInt(10, 20)
+  const overlaps = randomInt(5, 10)
+  const outside = randomInt(10, 20)
+  const total = onlyA + onlyB + onlyC + overlaps + outside
+  const answer = total - onlyA - onlyB - onlyC - overlaps
+  return buildProblem('集合', difficulty, `${total}人を調査したところ、Aだけの人が${onlyA}人、Bだけが${onlyB}人、Cだけが${onlyC}人、2つ以上に属する人が${overlaps}人でした。どれにも属さない人は何人ですか。`, answer, `${total} - (${onlyA} + ${onlyB} + ${onlyC} + ${overlaps}) = ${answer}人です。`, '人')
+}
+
+const generateSetSurvey = (difficulty: Difficulty): SpiProblem => {
+  const total = randomInt(50, 80)
+  const tea = randomInt(25, 40)
+  const coffee = randomInt(20, 35)
+  const both = randomInt(8, 15)
+  const answer = tea + coffee - both
+  return buildProblem('集合', difficulty, `${total}人に調査したところ、紅茶を飲む人は${tea}人、コーヒーを飲む人は${coffee}人、両方飲む人は${both}人でした。少なくともどちらかを飲む人は何人ですか。`, answer, `${tea} + ${coffee} - ${both} = ${answer}人です。`, '人')
+}
+
 const generateProfitLoss = (difficulty: Difficulty): SpiProblem => {
   const cost = randomInt(4, 16) * 500
   const rate = pick([10, 20, 25, 30, 40])
   const answer = cost * (1 + rate / 100)
   return buildProblem('損益算', difficulty, `原価${cost}円の商品に、原価の${rate}%の利益を加えると売価はいくらですか。`, answer, `${cost} × (1 + ${rate} ÷ 100) = ${format(answer)}円です。`, '円', 50)
+}
+
+const generateProfitLossDiscount = (difficulty: Difficulty): SpiProblem => {
+  const cost = randomInt(4, 8) * 1000
+  const markup = pick([20, 25, 30])
+  const discount = pick([10, 20])
+  const answer = cost * (1 + markup / 100) * (1 - discount / 100)
+  return buildProblem('損益算', difficulty, `原価${cost}円に${markup}%の利益を加えた定価から、${discount}%引きで販売しました。売価はいくらですか。`, answer, `${cost} × 1.${markup === 20 ? '2' : markup === 25 ? '25' : '3'} × 0.${discount === 10 ? '9' : '8'} = ${format(answer)}円です。`, '円', 50)
+}
+
+const generateProfitLossReverse = (difficulty: Difficulty): SpiProblem => {
+  const rate = pick([20, 25, 30])
+  const base = rate === 20 ? 6000 : rate === 25 ? 5000 : 6500
+  const price = base * randomInt(1, 2)
+  const answer = price / (1 + rate / 100)
+  return buildProblem('損益算', difficulty, `原価に${rate}%の利益を加えて${price}円で販売しました。原価はいくらですか。`, answer, `${price} ÷ (1 + ${rate} ÷ 100) = ${format(answer)}円です。`, '円', 50)
 }
 
 const generateSpeed = (difficulty: Difficulty): SpiProblem => {
@@ -122,6 +190,20 @@ const generatePercentage = (difficulty: Difficulty): SpiProblem => {
   const rate = pick([10, 15, 20, 25, 30, 40, 50])
   const answer = base * rate / 100
   return buildProblem('割合', difficulty, `${base}人の${rate}%は何人ですか。`, answer, `${base} × ${rate} ÷ 100 = ${format(answer)}人です。`, '人')
+}
+
+const generatePercentageDiscount = (difficulty: Difficulty): SpiProblem => {
+  const price = randomInt(4, 12) * 500
+  const rate = pick([10, 20, 25])
+  const answer = price * (1 - rate / 100)
+  return buildProblem('割合', difficulty, `定価${price}円の商品を${rate}%引きで購入しました。支払額はいくらですか。`, answer, `${price} × (1 - ${rate} ÷ 100) = ${format(answer)}円です。`, '円', 50)
+}
+
+const generatePercentageChange = (difficulty: Difficulty): SpiProblem => {
+  const original = randomInt(4, 12) * 100
+  const rate = pick([10, 20, 25])
+  const answer = original * (1 + rate / 100)
+  return buildProblem('割合', difficulty, `昨年の売上${original}万円から今年は${rate}%増加しました。今年の売上はいくらですか。`, answer, `${original} × (1 + ${rate} ÷ 100) = ${format(answer)}万円です。`, '万円', 10)
 }
 
 const generateTableCrossReference = (difficulty: Difficulty): SpiProblem => {
@@ -196,13 +278,13 @@ const generateTable = (difficulty: Difficulty): SpiProblem =>
   pick([generateTableCrossReference, generateTableAverage, generateTableGrowth, generateTablePriceQuantity])(difficulty)
 
 const generators: Record<ProblemCategory, (difficulty: Difficulty) => SpiProblem> = {
-  推論: generateInference,
-  '場合の数': generateCases,
-  確率: generateProbability,
-  集合: generateSet,
-  損益算: generateProfitLoss,
+  推論: (difficulty) => pick([generateInference, generateInferenceOrder])(difficulty),
+  '場合の数': (difficulty) => pick([generateCases, generateCasesCommittee, generateCasesArrangement])(difficulty),
+  確率: (difficulty) => pick([generateProbability, generateProbabilityTwoDraws, generateProbabilityDice])(difficulty),
+  集合: (difficulty) => pick([generateSet, generateSetThreeGroups, generateSetSurvey])(difficulty),
+  損益算: (difficulty) => pick([generateProfitLoss, generateProfitLossDiscount, generateProfitLossReverse])(difficulty),
   速度算: generateSpeed,
-  割合: generatePercentage,
+  割合: (difficulty) => pick([generatePercentage, generatePercentageDiscount, generatePercentageChange])(difficulty),
   '表の読み取り': generateTable,
 }
 
