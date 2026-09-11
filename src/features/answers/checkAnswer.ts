@@ -30,3 +30,8 @@ export const createAnswerRecord = (problem: SpiProblem, result: AnswerResult): A
   ...result,
   answeredAt: new Date().toISOString(),
 })
+
+/** 回答履歴のうち、間違えた問題だけを返します。 */
+export const getIncorrectAnswers = (history: AnswerRecord[]): AnswerRecord[] => (
+  history.filter((record) => !record.isCorrect)
+)
