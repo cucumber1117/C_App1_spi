@@ -1,22 +1,56 @@
-import type { SpiProblem } from '../../features/problems/problemGenerator'
+import { useEffect, useRef, useState } from 'react'
+import type { Difficulty, SpiProblem } from '../../features/problems/problemGenerator'
+
+type QuestionProblem = Omit<SpiProblem, 'difficulty'> & { difficulty?: Difficulty }
 
 type QuestionProps = {
-  problem: SpiProblem
+  problem: QuestionProblem
   selectedAnswer: string | null
   onAnswer: (answer: string) => void
   onBack: () => void
-  onSubmit: () => void
+  onSubmit: (elapsedSeconds: number) => void
+  isReview?: boolean
 }
 
-function Question({ problem, selectedAnswer, onAnswer, onBack, onSubmit }: QuestionProps) {
+const formatElapsedTime = (seconds: number) => {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
+}
+
+function Question({ problem, selectedAnswer, onAnswer, onBack, onSubmit, isReview = false }: QuestionProps) {
+  const startedAt = useRef<number | null>(null)
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
+
+  useEffect(() => {
+    startedAt.current = performance.now()
+    const intervalId = window.setInterval(() => {
+      if (startedAt.current !== null) {
+        setElapsedSeconds(Math.floor((performance.now() - startedAt.current) / 1000))
+      }
+    }, 250)
+
+    return () => window.clearInterval(intervalId)
+  }, [])
+
+  const submitWithTime = () => {
+    const finalSeconds = startedAt.current === null
+      ? 0
+      : Math.floor((performance.now() - startedAt.current) / 1000)
+    onSubmit(finalSeconds)
+  }
+
   return (
     <section className="page-content narrow-content question-page">
       <div className="question-topline">
-        <button className="back-button" onClick={onBack} type="button">← 分野選択へ戻る</button>
-        <span className="question-count">QUESTION 1 / 10</span>
+        <button className="back-button" onClick={onBack} type="button">← {isReview ? '復習一覧へ戻る' : '分野選択へ戻る'}</button>
+        <div className="question-status">
+          <span className="question-count">{isReview ? 'REVIEW' : 'QUESTION 1 / 10'}</span>
+          <span className="question-timer">経過時間 {formatElapsedTime(elapsedSeconds)}</span>
+        </div>
       </div>
       <div className="progress-track"><span /></div>
-      <div className="question-meta"><span>{problem.category}</span><span>難易度：{problem.difficulty}</span></div>
+      <div className="question-meta"><span>{problem.category}</span>{problem.difficulty && <span>難易度：{problem.difficulty}</span>}</div>
       <div className="question-card">
         <p className="question-label">問題文</p>
         <h2>{problem.question}</h2>
@@ -29,7 +63,7 @@ function Question({ problem, selectedAnswer, onAnswer, onBack, onSubmit }: Quest
           ))}
         </div>
       </div>
-      <button className="primary-button submit-button" disabled={!selectedAnswer} onClick={onSubmit} type="button">回答する <span>→</span></button>
+      <button className="primary-button submit-button" disabled={!selectedAnswer} onClick={submitWithTime} type="button">回答する <span>→</span></button>
     </section>
   )
 }
