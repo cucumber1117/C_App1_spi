@@ -1,15 +1,19 @@
 type HomeProps = {
   onStart: () => void
+  onShowPerformance: () => void
 }
 
-function Home({ onStart }: HomeProps) {
+function Home({ onStart, onShowPerformance }: HomeProps) {
   return (
     <section className="home-page page-content">
       <div className="hero-copy">
         <p className="eyebrow">SPI TRAINING</p>
         <h1>すきま時間で、<br /><span>得点力</span>を伸ばそう。</h1>
         <p className="lead">SPI非言語問題を解いて、就活に向けた力を身につけよう。</p>
-        <button className="primary-button" onClick={onStart} type="button">問題をはじめる <span>→</span></button>
+        <div className="home-actions">
+          <button className="primary-button" onClick={onStart} type="button">問題をはじめる <span>→</span></button>
+          <button className="secondary-button" onClick={onShowPerformance} type="button">成績を見る</button>
+        </div>
       </div>
       <div className="hero-visual" aria-hidden="true">
         <div className="visual-orbit orbit-one" />
