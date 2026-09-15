@@ -1,24 +1,26 @@
 type HomeProps = {
   onStart: () => void
   onShowPerformance: () => void
+  onShowReview: () => void
 }
 
-function Home({ onStart, onShowPerformance }: HomeProps) {
+function Home({ onStart, onShowPerformance, onShowReview }: HomeProps) {
   return (
     <section className="home-page page-content">
       <div className="hero-copy">
         <p className="eyebrow">SPI TRAINING</p>
         <h1>すきま時間で、<br /><span>得点力</span>を伸ばそう。</h1>
         <p className="lead">SPI非言語問題を解いて、就活に向けた力を身につけよう。</p>
-        <div className="home-actions">
-          <button className="primary-button" onClick={onStart} type="button">問題をはじめる <span>→</span></button>
-          <button className="secondary-button" onClick={onShowPerformance} type="button">成績を見る</button>
-        </div>
       </div>
       <div className="hero-visual" aria-hidden="true">
         <div className="visual-orbit orbit-one" />
         <div className="visual-orbit orbit-two" />
         <div className="visual-card"><span className="visual-check">✓</span><strong>今日も一問、<br />積み重ねよう</strong><small>YOUR NEXT STEP</small></div>
+      </div>
+      <div className="home-actions">
+        <button className="primary-button" onClick={onStart} type="button">問題をはじめる <span>→</span></button>
+        <button className="secondary-button" onClick={onShowPerformance} type="button">成績を見る</button>
+        <button className="secondary-button" onClick={onShowReview} type="button">間違えた問題を復習</button>
       </div>
       <div className="feature-row"><div><strong>3</strong><span>分野から出題</span></div><div><strong>∞</strong><span>問題をランダム生成</span></div><div><strong>1</strong><span>問ずつ着実に</span></div></div>
     </section>
