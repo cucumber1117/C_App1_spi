@@ -8,20 +8,11 @@ import Home from './pages/home/home'
 import Performance from './pages/performance/performance'
 import Question from './pages/question/question'
 import Review from './pages/review/review'
+import CategoryMap from './pages/stages/CategoryMap'
 import './App.css'
 
 type Page = 'home' | 'categories' | 'question' | 'result' | 'performance' | 'review'
 
-const categories: { name: ProblemCategory; description: string; icon: string }[] = [
-  { name: '推論', description: '条件から答えを導く問題', icon: '◎' },
-  { name: '場合の数', description: '組み合わせを数える問題', icon: 'Ⅲ' },
-  { name: '確率', description: '起こりやすさを求める問題', icon: '⅟' },
-  { name: '集合', description: 'グループの重なりの問題', icon: '◯' },
-  { name: '損益算', description: '原価・利益・売価の問題', icon: '￥' },
-  { name: '速度算', description: '速さ・時間・道のりの問題', icon: '↗' },
-  { name: '割合', description: '割合・比・百分率の問題', icon: '%' },
-  { name: '表の読み取り', description: '表や数値を読み取る問題', icon: '▦' },
-]
 
 function App() {
   const [page, setPage] = useState<Page>('home')
@@ -76,7 +67,7 @@ function App() {
         {page === 'home' && <Home onStart={() => setPage('categories')} onShowPerformance={() => setPage('performance')} onShowReview={() => setPage('review')} />}
         {page === 'performance' && <Performance scoreSummary={scoreSummary} categoryScoreSummaries={categoryScoreSummaries} onBack={() => setPage('home')} />}
         {page === 'review' && <Review problems={reviewProblems} onSelect={startReview} onBack={() => setPage('home')} />}
-        {page === 'categories' && <section className="page-content narrow-content"><button className="back-button" onClick={() => setPage('home')} type="button">← ホームへ戻る</button><p className="eyebrow">STEP 01</p><h2 className="page-title">分野を選ぼう</h2><p className="page-description">挑戦したい分野を選択してください。</p><div className="category-grid">{categories.map((category) => <button className="category-card" key={category.name} onClick={() => startCategory(category.name)} type="button"><span className="category-icon">{category.icon}</span><span className="category-info"><strong>{category.name}</strong><small>{category.description}</small></span><span className="card-arrow">→</span></button>)}</div></section>}
+        {page === 'categories' && <CategoryMap history={answerHistory} onSelectCategory={startCategory} onHome={() => setPage('home')} />}
         {page === 'question' && <Question key={`${isReviewMode ? 'review' : 'practice'}-${currentProblem.id}`} problem={currentProblem} selectedAnswer={selectedAnswer} onAnswer={setSelectedAnswer} onBack={() => setPage(isReviewMode ? 'review' : 'categories')} onSubmit={submitAnswer} isReview={isReviewMode} />}
         {page === 'result' && answerResult && (
           <section className="page-content narrow-content result-page">
@@ -89,7 +80,7 @@ function App() {
               <p>{answerResult.explanation}</p>
             </div>
             <div className="result-actions">
-              <button className="primary-button" onClick={() => setPage(isReviewMode ? 'review' : 'categories')} type="button">{isReviewMode ? '復習一覧へ戻る' : 'もう一度解く'} <span>→</span></button>
+              <button className="primary-button" onClick={() => setPage(isReviewMode ? 'review' : 'categories')} type="button">{isReviewMode ? '復習一覧へ戻る' : 'MAPへ戻る'} <span>→</span></button>
               <button className="secondary-button" onClick={() => setPage('home')} type="button">ホームへ戻る</button>
             </div>
           </section>

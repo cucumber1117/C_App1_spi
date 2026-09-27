@@ -43,7 +43,7 @@ function Question({ problem, selectedAnswer, onAnswer, onBack, onSubmit, isRevie
   return (
     <section className="page-content narrow-content question-page">
       <div className="question-topline">
-        <button className="back-button" onClick={onBack} type="button">← {isReview ? '復習一覧へ戻る' : '分野選択へ戻る'}</button>
+        <button className="back-button" onClick={onBack} type="button">← {isReview ? '復習一覧へ戻る' : 'MAPへ戻る'}</button>
         <div className="question-status">
           <span className="question-count">{isReview ? 'REVIEW' : 'QUESTION 1 / 10'}</span>
           <span className="question-timer">経過時間 {formatElapsedTime(elapsedSeconds)}</span>

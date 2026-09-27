@@ -1,3 +1,5 @@
+import { PROBLEM_CATEGORIES } from '../../features/problems/problemGenerator'
+
 type HomeProps = {
   onStart: () => void
   onShowPerformance: () => void
@@ -22,7 +24,7 @@ function Home({ onStart, onShowPerformance, onShowReview }: HomeProps) {
         <button className="secondary-button" onClick={onShowPerformance} type="button">成績を見る</button>
         <button className="secondary-button" onClick={onShowReview} type="button">間違えた問題を復習</button>
       </div>
-      <div className="feature-row"><div><strong>3</strong><span>分野から出題</span></div><div><strong>∞</strong><span>問題をランダム生成</span></div><div><strong>1</strong><span>問ずつ着実に</span></div></div>
+      <div className="feature-row"><div><strong>{PROBLEM_CATEGORIES.length}</strong><span>分野から出題</span></div><div><strong>∞</strong><span>問題をランダム生成</span></div><div><strong>1</strong><span>問ずつ着実に</span></div></div>
     </section>
   )
 }
