@@ -1,5 +1,6 @@
 export type Difficulty = 'easy' | 'normal' | 'hard'
 export type ProblemCategory = '推論' | '場合の数' | '確率' | '集合' | '損益算' | '速度算' | '割合' | '表の読み取り'
+  | '仕事算' | '分割払い' | '代金の精算' | '整数条件' | 'フローチャート' | 'グラフと不等式の領域' | '最大値と最小値'
 export type Table = { title: string; headers: string[]; rows: string[][] }
 export type SpiProblem = {
   id: string
