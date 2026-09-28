@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import test from 'node:test'
 import ts from 'typescript'
+import { additionalSolvers } from './additionalProblemSolvers.mjs'
 
 // アプリのビルド設定・依存関係を変更せず、TypeScriptをメモリ上で読み込む。
 const require = createRequire(import.meta.url)
@@ -198,6 +199,8 @@ function seeded(seed) {
   return () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 2 ** 32 }
 }
 
+Object.assign(solve, additionalSolvers)
+
 for (const pattern of PROBLEM_PATTERNS) {
   test(`${pattern.category}: ${pattern.name} — 200乱数系列と境界値`, () => {
     assert.equal(typeof solve[pattern.id], 'function', 'すべてのパターンに独立検算が必要')
@@ -221,7 +224,7 @@ for (const pattern of PROBLEM_PATTERNS) {
   })
 }
 
-test('既存API・8分野×3難易度・ID・入力検証', () => {
+test('既存API・全分野×3難易度・ID・入力検証', () => {
   const ids = new Set()
   for (const category of PROBLEM_CATEGORIES) for (const difficulty of ['easy', 'normal', 'hard']) {
     const batch = generateProblems(10, { category, difficulty })
@@ -232,7 +235,7 @@ test('既存API・8分野×3難易度・ID・入力検証', () => {
       ids.add(p.id)
     }
   }
-  assert.equal(ids.size, 240)
+  assert.equal(ids.size, PROBLEM_CATEGORIES.length * 3 * 10)
   assert.equal(generateProblem().difficulty, 'normal')
   assert.equal(generateProblems(0).length, 0)
   for (const count of [-1, 0.5, NaN, Infinity]) assert.throws(() => generateProblems(count), RangeError)

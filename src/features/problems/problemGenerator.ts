@@ -1,14 +1,21 @@
 import { pick, validateProblem } from './core'
 import type { Difficulty, ProblemCategory, SpiProblem } from './core'
-import { templates } from './templates'
+import { templates as existingTemplates } from './templates'
+import { additionalTemplates } from './additionalTemplates'
+
+const templates = [...existingTemplates, ...additionalTemplates]
 
 export type { Difficulty, ProblemCategory, SpiProblem } from './core'
 
 export const PROBLEM_CATEGORIES: ProblemCategory[] = [
   '推論', '場合の数', '確率', '集合', '損益算', '速度算', '割合', '表の読み取り',
+  '仕事算', '分割払い', '代金の精算', '整数条件', 'フローチャート', 'グラフと不等式の領域', '最大値と最小値',
 ]
 
-/** UIを変更せず、開発用の問題確認や連携時に参照できる出題一覧。 */
+// TODO(UI担当): 分野選択・MAPに追加分野を接続する。難易度は第2引数で指定可能。
+// 領域とフローチャートは現在、文章と既存のtablesで条件を提示する。図の描画は未実装。
+
+
 export const PROBLEM_PATTERNS = templates.map(({ id, category, name, difficulty }) => ({ id, category, name, difficulty }))
 
 export function generateProblemByPattern(patternId: string): SpiProblem {
