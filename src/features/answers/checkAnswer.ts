@@ -16,6 +16,9 @@ export type AnswerRecord = AnswerResult & {
   tables?: SpiProblem['tables']
   elapsedSeconds?: number
   answeredAt: string
+  stageId?: string
+  sessionId?: string
+  mode?: 'practice' | 'review'
 }
 
 /** 選択した回答を採点し、結果画面で使う情報を返します。 */

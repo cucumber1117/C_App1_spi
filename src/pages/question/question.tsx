@@ -10,6 +10,8 @@ type QuestionProps = {
   onBack: () => void
   onSubmit: (elapsedSeconds: number) => void
   isReview?: boolean
+  questionNumber: number
+  questionCount: number
 }
 
 const formatElapsedTime = (seconds: number) => {
@@ -18,8 +20,9 @@ const formatElapsedTime = (seconds: number) => {
   return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
 }
 
-function Question({ problem, selectedAnswer, onAnswer, onBack, onSubmit, isReview = false }: QuestionProps) {
+function Question({ problem, selectedAnswer, onAnswer, onBack, onSubmit, isReview = false, questionNumber, questionCount }: QuestionProps) {
   const startedAt = useRef<number | null>(null)
+  const submitted = useRef(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
 
   useEffect(() => {
@@ -34,6 +37,8 @@ function Question({ problem, selectedAnswer, onAnswer, onBack, onSubmit, isRevie
   }, [])
 
   const submitWithTime = () => {
+    if (selectedAnswer === null || submitted.current) return
+    submitted.current = true
     const finalSeconds = startedAt.current === null
       ? 0
       : Math.floor((performance.now() - startedAt.current) / 1000)
@@ -45,11 +50,11 @@ function Question({ problem, selectedAnswer, onAnswer, onBack, onSubmit, isRevie
       <div className="question-topline">
         <button className="back-button" onClick={onBack} type="button">← {isReview ? '復習一覧へ戻る' : 'MAPへ戻る'}</button>
         <div className="question-status">
-          <span className="question-count">{isReview ? 'REVIEW' : 'QUESTION 1 / 10'}</span>
+          <span className="question-count">{isReview ? 'REVIEW' : `QUESTION ${questionNumber} / ${questionCount}`}</span>
           <span className="question-timer">経過時間 {formatElapsedTime(elapsedSeconds)}</span>
         </div>
       </div>
-      <div className="progress-track"><span /></div>
+      {!isReview && <div className="progress-track" role="progressbar" aria-label="演習の進行状況" aria-valuemin={0} aria-valuemax={questionCount} aria-valuenow={questionNumber}><span style={{ width: `${questionNumber / questionCount * 100}%` }} /></div>}
       <div className="question-meta"><span>{problem.category}</span>{problem.difficulty && <span>難易度：{problem.difficulty}</span>}</div>
       <div className="question-card">
         <p className="question-label">問題文</p>

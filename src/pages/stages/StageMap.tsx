@@ -1,54 +1,79 @@
+import { useEffect, useRef } from 'react'
 import './stages.css'
+import type { Track } from '../../features/stages/catalog'
 
-type StageView = {
+export type StageView = {
   id: string
   label: string
-  category: string
+  unlocked: boolean
   played: boolean
-  award?: 'clear'
+  award?: 'clear' | 'perfect'
+  isNew?: boolean
 }
-
-type StageGroupView = {
+export type StageGroupView = {
   id: string
   label: string
   stages: StageView[]
+  check: StageView
 }
-
-type StageMapProps = {
-  groups: StageGroupView[]
+export type StageMapProps = {
+  track: Track
   currentStageId: string
+  activeGroup: StageGroupView
+  pastGroups: StageGroupView[]
+  onTrackChange: (track: Track) => void
   onSelectStage: (stageId: string) => void
+  onNewSeen: (stageId: string) => void
   onHome: () => void
+  completed?: boolean
 }
 
-function StageNode({ stage, current, onSelect }: {
+function StageNode({ stage, current, onSelect, onSeen }: {
   stage: StageView
   current: boolean
   onSelect: (id: string) => void
+  onSeen: (id: string) => void
 }) {
-  const status = stage.award === 'clear' ? 'CLEAR' : stage.played ? 'プレイ済み' : current ? 'ここから' : ''
-  return <button type="button" className={`stage-node ${current ? 'stage-current' : ''}`}
-    aria-label={`${stage.category} ${status}`.trim()}
+  const ref = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (!stage.isNew || !stage.unlocked || !ref.current) return
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const observer = new IntersectionObserver(([entry]) => {
+      clearTimeout(timer)
+      if (entry.isIntersecting) timer = setTimeout(() => onSeen(stage.id), 2400)
+    }, { threshold: 0.8 })
+    observer.observe(ref.current)
+    return () => { clearTimeout(timer); observer.disconnect() }
+  }, [stage.id, stage.isNew, stage.unlocked, onSeen])
+  const status = stage.award === 'perfect' ? 'PERFECT' : stage.award === 'clear' ? 'CLEAR' : stage.played ? 'プレイ済み' : current ? 'ここから' : ''
+  return <button ref={ref} type="button" disabled={!stage.unlocked}
+    className={`stage-node ${current ? 'stage-current' : ''} ${stage.isNew ? 'stage-new' : ''} ${stage.award === 'perfect' ? 'stage-perfect' : ''}`}
+    aria-label={stage.unlocked ? `${stage.label === 'CHECK' ? 'CHECK' : `STAGE ${stage.label}`} ${status}` : '未解放のステージ'}
     aria-current={current ? 'step' : undefined} onClick={() => onSelect(stage.id)}>
-    <span className="stage-number">{stage.label}</span>
-    <span className="stage-category">{stage.category}</span>
-    {status && <span className="stage-status">{stage.award === 'clear' ? '✓ ' : ''}{status}</span>}
+    {stage.unlocked ? <><span className="stage-number">{stage.label}</span>
+      {status && <span className="stage-status">{stage.award === 'clear' ? '✓ ' : ''}{status}</span>}
+      {stage.isNew && <span className="stage-new-label">NEW</span>}</> : <span className="stage-diamond" aria-hidden="true">◇</span>}
   </button>
 }
 
-export default function StageMap({ groups, currentStageId, onSelectStage, onHome }: StageMapProps) {
-  return <section className="stage-screen" aria-label="学習MAP">
-    <header className="stage-header"><button type="button" onClick={onHome} aria-label="ホームへ戻る">←</button><span>SPI</span><span aria-hidden="true">✦</span></header>
+export default function StageMap(props: StageMapProps) {
+  const renderNode = (stage: StageView) => <StageNode key={stage.id} stage={stage} current={stage.id === props.currentStageId}
+    onSelect={props.onSelectStage} onSeen={props.onNewSeen} />
+  return <section className="stage-screen" aria-label="ステージ選択">
+    <header className="stage-header"><button type="button" onClick={props.onHome} aria-label="ホームへ戻る">←</button><span>SPI</span><span aria-hidden="true">✦</span></header>
     <nav className="stage-tracks" aria-label="問題の区分">
-      <button type="button" disabled aria-pressed={false}>言語<small>（準備中）</small></button>
-      <button type="button" aria-pressed={true}>非言語</button>
+      <button type="button" disabled aria-pressed={false}>言語（準備中）</button>
+      <button type="button" aria-pressed={props.track === 'nonverbal'} onClick={() => props.onTrackChange('nonverbal')}>非言語</button>
     </nav>
-    <div className="stage-heading"><p>挑戦したい分野から、ひとつずつ。</p><h1>分野を選ぼう</h1></div>
-    {groups.map(group => <section key={group.id} className="stage-map" aria-label={group.label}><div className="stage-path" aria-hidden="true" />
-      <ol>{group.stages.map((stage, index) => <li key={stage.id} className={`stage-position-${index}`}>
-        <StageNode stage={stage} current={stage.id === currentStageId} onSelect={onSelectStage} />
-      </li>)}</ol>
-    </section>)}
+    {props.pastGroups.length > 0 && <details className="stage-history"><summary>これまで <span aria-hidden="true">＋</span></summary>
+      {props.pastGroups.map(group => <details key={group.id}><summary>{group.label}</summary><div className="stage-history-grid">{group.stages.map(renderNode)}{renderNode(group.check)}</div></details>)}
+    </details>}
+    <div className="stage-heading"><p>ひとつずつ、先へ。</p><h1>次のステージへ</h1></div>
+    {props.completed && <p className="stage-footnote" role="status">ここまでクリア！ 復習や再挑戦も、自分のペースで。</p>}
+    <section className="stage-map" aria-label="ステージ選択"><div className="stage-path" aria-hidden="true" />
+      <ol>{props.activeGroup.stages.map((stage, index) => <li key={stage.id} className={`stage-position-${index}`}>{renderNode(stage)}</li>)}</ol>
+      <div className="stage-check">{renderNode(props.activeGroup.check)}</div>
+    </section>
     <p className="stage-footnote">自分のペースで、進もう。</p>
   </section>
 }

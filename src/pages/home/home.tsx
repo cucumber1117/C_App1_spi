@@ -1,32 +1,21 @@
-import { PROBLEM_CATEGORIES } from '../../features/problems/problemGenerator'
-
 type HomeProps = {
-  onStart: () => void
-  onShowPerformance: () => void
-  onShowReview: () => void
+  started: boolean
+  onContinue: () => void
+  onMap: () => void
+  onReview: () => void
+  onPerformance: () => void
 }
-
-function Home({ onStart, onShowPerformance, onShowReview }: HomeProps) {
-  return (
-    <section className="home-page page-content">
-      <div className="hero-copy">
-        <p className="eyebrow">SPI TRAINING</p>
-        <h1>すきま時間で、<br /><span>得点力</span>を伸ばそう。</h1>
-        <p className="lead">SPI非言語問題を解いて、就活に向けた力を身につけよう。</p>
-      </div>
-      <div className="hero-visual" aria-hidden="true">
-        <div className="visual-orbit orbit-one" />
-        <div className="visual-orbit orbit-two" />
-        <div className="visual-card"><span className="visual-check">✓</span><strong>今日も一問、<br />積み重ねよう</strong><small>YOUR NEXT STEP</small></div>
-      </div>
-      <div className="home-actions">
-        <button className="primary-button" onClick={onStart} type="button">問題をはじめる <span>→</span></button>
-        <button className="secondary-button" onClick={onShowPerformance} type="button">成績を見る</button>
-        <button className="secondary-button" onClick={onShowReview} type="button">間違えた問題を復習</button>
-      </div>
-      <div className="feature-row"><div><strong>{PROBLEM_CATEGORIES.length}</strong><span>分野から出題</span></div><div><strong>∞</strong><span>問題をランダム生成</span></div><div><strong>1</strong><span>問ずつ着実に</span></div></div>
-    </section>
-  )
+export default function Home({ started, onContinue, onMap, onReview, onPerformance }: HomeProps) {
+  return <section className="page-content learning-home">
+    <p className="eyebrow">SPI TRAINING</p>
+    <h1>{started ? <>今日も、<br />ひとつ先へ。</> : <>どちらから<br />始める？</>}</h1>
+    <p className="lead">自分のペースで、少しずつ。</p>
+    {started && <button className="primary-button continue-button" type="button" onClick={onContinue}>続きから →</button>}
+    <div className="home-actions">
+      <button className="secondary-button" type="button" disabled>言語（準備中）</button>
+      <button className={started ? 'secondary-button' : 'primary-button'} type="button" onClick={onMap}>非言語 →</button>
+      <button className="secondary-button" type="button" onClick={onReview}>復習</button>
+    </div>
+    <button className="quiet-link" type="button" onClick={onPerformance}>成績を見る</button>
+  </section>
 }
-
-export default Home
