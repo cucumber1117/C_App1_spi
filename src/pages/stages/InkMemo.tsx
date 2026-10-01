@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import './ink.css'
+import type { Ink } from '../../features/stages/ink'
 
 type Point = { x: number; y: number }
-export type Ink = { width: number; height: number; strokes: Point[][] }
-// oxlint-disable-next-line react/only-export-components
-export function isInk(value: unknown): value is Ink {
-  const ink = value as Ink | null
-  return !!ink && Number.isFinite(ink.width) && ink.width > 0 && Number.isFinite(ink.height) && ink.height > 0 && Array.isArray(ink.strokes) && ink.strokes.every(s => Array.isArray(s) && s.every(p => p && Number.isFinite(p.x) && Number.isFinite(p.y)))
-}
 export function InkPreview({ ink }: { ink: Ink }) {
   return <svg className="ink-preview" viewBox={`0 0 ${ink.width} ${ink.height}`} role="img" aria-label="この問題の手書きメモ"><InkLines strokes={ink.strokes} /></svg>
 }
@@ -44,7 +39,7 @@ export default function InkMemo({ ink, onChange }: { ink?: Ink; onChange: (ink: 
     return { x: (event.clientX - rect.left) / rect.width * width, y: (event.clientY - rect.top) / rect.height * height }
   }
   return <>
-    <button className="ink-launch" aria-label="手書きメモを開く" title="手書きメモ" ref={launcher} type="button" onClick={() => setBounds(launcher.current!.closest('main')!.getBoundingClientRect())}><span aria-hidden="true">✎</span></button>
+    <button className="ink-launch" aria-label="手書きメモを開く" title="手書きメモ" ref={launcher} type="button" onClick={() => setBounds(launcher.current!.closest('[data-memo-surface]')!.getBoundingClientRect())}><span aria-hidden="true">✎</span></button>
     {!bounds && ink && <svg className="ink-ghost" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true"><InkLines strokes={ink.strokes} /></svg>}
     {bounds && <dialog ref={dialog} className="ink-dialog" aria-label="手書きメモ" onCancel={() => { finish(); setBounds(null) }}>
       <svg className="ink-canvas" role="img" aria-label="問題の上に書く領域" style={{ left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height }} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none"

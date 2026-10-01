@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import './stages.css'
+import type { Track } from '../../features/stages/catalog'
 
-export type Track = 'verbal' | 'nonverbal'
 export type StageView = {
   id: string
   label: string
@@ -25,6 +25,7 @@ export type StageMapProps = {
   onSelectStage: (stageId: string) => void
   onNewSeen: (stageId: string) => void
   onHome: () => void
+  completed?: boolean
 }
 
 function StageNode({ stage, current, onSelect, onSeen }: {
@@ -58,20 +59,21 @@ function StageNode({ stage, current, onSelect, onSeen }: {
 export default function StageMap(props: StageMapProps) {
   const renderNode = (stage: StageView) => <StageNode key={stage.id} stage={stage} current={stage.id === props.currentStageId}
     onSelect={props.onSelectStage} onSeen={props.onNewSeen} />
-  return <main className="stage-screen">
+  return <section className="stage-screen" aria-label="ステージ選択">
     <header className="stage-header"><button type="button" onClick={props.onHome} aria-label="ホームへ戻る">←</button><span>SPI</span><span aria-hidden="true">✦</span></header>
     <nav className="stage-tracks" aria-label="問題の区分">
-      <button type="button" aria-pressed={props.track === 'verbal'} onClick={() => props.onTrackChange('verbal')}>言語</button>
+      <button type="button" disabled aria-pressed={false}>言語（準備中）</button>
       <button type="button" aria-pressed={props.track === 'nonverbal'} onClick={() => props.onTrackChange('nonverbal')}>非言語</button>
     </nav>
     {props.pastGroups.length > 0 && <details className="stage-history"><summary>これまで <span aria-hidden="true">＋</span></summary>
       {props.pastGroups.map(group => <details key={group.id}><summary>{group.label}</summary><div className="stage-history-grid">{group.stages.map(renderNode)}{renderNode(group.check)}</div></details>)}
     </details>}
     <div className="stage-heading"><p>ひとつずつ、先へ。</p><h1>次のステージへ</h1></div>
+    {props.completed && <p className="stage-footnote" role="status">ここまでクリア！ 復習や再挑戦も、自分のペースで。</p>}
     <section className="stage-map" aria-label="ステージ選択"><div className="stage-path" aria-hidden="true" />
       <ol>{props.activeGroup.stages.map((stage, index) => <li key={stage.id} className={`stage-position-${index}`}>{renderNode(stage)}</li>)}</ol>
       <div className="stage-check">{renderNode(props.activeGroup.check)}</div>
     </section>
     <p className="stage-footnote">自分のペースで、進もう。</p>
-  </main>
+  </section>
 }
