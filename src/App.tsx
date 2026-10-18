@@ -65,7 +65,12 @@ export default function App() {
     {saveError && <aside className="storage-alert" role="alert"><span>{saveError}</span><button type="button" onClick={() => { try { saveLearning(stateRef.current); setSaveError(null) } catch { /* 警告を維持する */ } }}>保存を再試行</button></aside>}
     {generationError && <aside className="storage-alert" role="alert"><span>{generationError} 回答済みのデータは保持しています。</span><button type="button" onClick={() => retryGeneration.current?.()}>生成を再試行</button><button type="button" onClick={() => setGenerationError(null)}>閉じる</button></aside>}
     <main className="page-container">
-      {state.page === 'home' && <Home started={Object.keys(state.sessions).length > 0} onContinue={continueLearning} onMap={() => commit(s => ({ ...s, page: 'map', track: 'nonverbal' }))} onReview={() => go('review')} onPerformance={() => go('performance')} />}
+      {state.page === 'home' && <Home started={Object.keys(state.sessions).length > 0}
+        onContinue={continueLearning} onMap={() => commit(s => ({ ...s, page: 'map', track: 'nonverbal' }))}
+        onReview={() => go('review')} onPerformance={() => go('performance')}
+        // TODO(各モード担当): 開始画面の接続時にavailableとコールバックを同時に更新する。
+        // 未接続の間はHome側でボタンをdisabledにし、開始処理は呼び出さない。
+        extraAvailable={false} mockAvailable={false} onExtra={() => {}} onMock={() => {}} />}
       {state.page === 'map' && (state.track === 'nonverbal' ? <CategoryMap state={state} onSelectStage={id => start(id, 'practice')} onSeen={onSeen} onHome={() => go('home')} /> : <section className="page-content"><p>言語は準備中です。</p><button type="button" onClick={() => go('home')}>ホームへ戻る</button></section>)}
       {state.page === 'exercise' && session && <StageExercise key={session.id} session={session} inReview={Boolean(state.reviews[session.plan.stageId])} saveError={saveError}
         onSelect={answer => commit(s => selectAnswer(s, answer))} onSubmit={elapsed => commit(s => submitAnswer(s, elapsed))} onAdvance={() => commit(advance)}
